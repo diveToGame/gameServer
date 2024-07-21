@@ -1,4 +1,4 @@
-import { OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { log } from 'console';
 import { Server, WebSocket } from 'ws';
 import { LogonDTO } from './dto/LogonDTO';
@@ -48,7 +48,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.clientMap.set(token, client);
         client.send(JSON.stringify({ event: 'logon', data: token }));    
       } else {
-        client.send(JSON.stringify({ event: 'logon', data: null }));    
+        client.send(JSON.stringify({ event: 'logon', data: null }));
       }
     }).catch(e => {client.send(JSON.stringify({ event: 'logon', data: null }));});
   }

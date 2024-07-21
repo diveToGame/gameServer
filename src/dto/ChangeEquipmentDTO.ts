@@ -11,6 +11,3 @@ export type ChangeEquipmentDTO = {
 // 20000 -> 무기
 // 30000 -> 신발
 // 40000 -> 악세
-
-
-
