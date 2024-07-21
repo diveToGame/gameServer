@@ -1,5 +1,3 @@
-import { UserCharactor } from "src/user/user.charactor";
-
 export type RoomDTO = {
   id: number;
   name: string;

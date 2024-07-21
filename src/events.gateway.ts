@@ -4,8 +4,7 @@ import { Server, WebSocket } from 'ws';
 import { LogonDTO } from './dto/LogonDTO';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './user/user.entity';
-import { UserCharactor } from './user/user.charactor';
+import { UserEntity } from './user/entity/user.entity';
 
 @WebSocketGateway(8080, { path: '/room', transports: ['websocket'] })
 export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -13,8 +12,8 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   constructor(
-    @InjectRepository(User)
-    private userRepositoy: Repository<User>,
+    @InjectRepository(UserEntity)
+    private userRepositoy: Repository<UserEntity>,
   ) {}
 
   clientMap = new Map<string, WebSocket>();
@@ -39,7 +38,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     
     log("%s login : %s", data.username, data.password);
 
-    const result: Promise<User> = this.userRepositoy.findOne({
+    const result: Promise<UserEntity> = this.userRepositoy.findOne({
       where: { username: data.username, password: data.password }
     });
 
@@ -54,7 +53,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('events')
-  onEvent(client: WebSocket, data: User) {
+  onEvent(client: WebSocket, data: UserEntity) {
     log("test: id: {} / name: {} / pass: {}", data.id, data.username, data.password);
     [1, 2, 3].forEach(item => {
       client.send(JSON.stringify({ event: 'events', data: item }));

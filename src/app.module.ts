@@ -2,17 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RoomGateway, LobbyGateway } from './events.gateway';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user/user.entity';
-import { EventsModule } from './events/events.module';
-import { LoginGateway } from './gateway/login/login.gateway';
-import { LobbyGateway } from './gateway/lobby/lobby.gateway';
-import { IngameGateway } from './gateway/ingame/ingame.gateway';
-import { LoginModule } from './gateway/login/login.module';
 import { LobbyModule } from './gateway/lobby/lobby.module';
 import { IngameModule } from './gateway/ingame/ingame.module';
-import { CharactersModule } from './character/characters.module';
+import { UserEntity } from './user/entity/user.entity';
+import { CharacterModule } from './character/character.module';
 
 @Module({
   imports: [
@@ -26,17 +20,15 @@ import { CharactersModule } from './character/characters.module';
       database: process.env.DB_DATABASE,
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
-      entities: [User],
+      entities: [UserEntity],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User]),
-    EventsModule,
-    LoginModule,
+    TypeOrmModule.forFeature([UserEntity]),
     LobbyModule,
     IngameModule,
-    CharactersModule,
+    CharacterModule,
   ],
   controllers: [AppController],
-  providers: [RoomGateway, LobbyGateway, ConfigService, AppService, LoginGateway, IngameGateway],
+  providers: [ConfigService, AppService],
 })
 export class AppModule {}
