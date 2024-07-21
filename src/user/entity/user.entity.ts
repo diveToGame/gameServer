@@ -1,13 +1,13 @@
-import { Column, Entity } from "typeorm";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity()
+@Entity('user')
 export class UserEntity {
-  @Column()
+  @PrimaryColumn('varchar', { length: 255 })
   email: string;
 
-  @Column()
+  @Column('varchar', { length: 255 })
   username: string;
 
-  @Column()
+  @Column('varchar', { length: 255 })
   password: string;
 }

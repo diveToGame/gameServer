@@ -54,7 +54,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('events')
   onEvent(client: WebSocket, data: UserEntity) {
-    log("test: id: {} / name: {} / pass: {}", data.id, data.username, data.password);
+    log("test: id: {} / name: {} / pass: {}", data.email, data.username, data.password);
     [1, 2, 3].forEach(item => {
       client.send(JSON.stringify({ event: 'events', data: item }));
     });
