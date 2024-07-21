@@ -98,7 +98,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 }
 
-@WebSocketGateway(8080, { path: "lobby", transports: ["websocket"] })
+@WebSocketGateway(8080, { path: "lobbyaaaaa", transports: ["websocket"] })
 export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;

@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { LobbyGateway } from "src/events.gateway";
+import { LobbyGateway } from "./lobby.gateway";
 
 @Module({
   providers: [LobbyGateway],

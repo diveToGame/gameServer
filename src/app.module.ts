@@ -7,6 +7,7 @@ import { LobbyModule } from "./gateway/lobby/lobby.module";
 import { IngameModule } from "./gateway/ingame/ingame.module";
 import { UserEntity } from "./user/entity/user.entity";
 import { CharacterModule } from "./character/character.module";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CharacterModule } from "./character/character.module";
     LobbyModule,
     IngameModule,
     CharacterModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [ConfigService, AppService],
