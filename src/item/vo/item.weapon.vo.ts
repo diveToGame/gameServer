@@ -4,4 +4,4 @@ export type Weapon = Equipment & {
   atk: number;
   def: number;
   spd: number;
-}
+};

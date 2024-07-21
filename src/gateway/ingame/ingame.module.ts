@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { IngameGateway } from './ingame.gateway';
+import { Module } from "@nestjs/common";
+import { IngameGateway } from "./ingame.gateway";
 
 @Module({
   providers: [IngameGateway],

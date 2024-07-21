@@ -5,7 +5,7 @@ export type ChangeEquipmentDTO = {
     shoesId: number;
     accessaryId: number;
   };
-}
+};
 
 // 10000 -> 헬멧
 // 20000 -> 무기

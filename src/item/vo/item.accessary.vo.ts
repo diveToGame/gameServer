@@ -5,4 +5,4 @@ export type Accessary = Equipment & {
   atk: number;
   def: number;
   spd: number;
-}
+};

@@ -6,4 +6,4 @@ export type RoomDTO = {
 
   isPublic: boolean;
   isPvP: boolean;
-}
+};

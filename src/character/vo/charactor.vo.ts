@@ -16,11 +16,11 @@ export class UserCharactor {
     weapon: Weapon;
     shoes: Shoes;
     accessary: Accessary;
-  }
+  };
   items: {
     helmet: Helmet[];
     weapon: Weapon[];
     shoes: Shoes[];
     accessary: Accessary[];
-  }
+  };
 }

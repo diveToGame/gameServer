@@ -1,23 +1,30 @@
-import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { log } from 'console';
-import { Server, WebSocket } from 'ws';
-import { LogonDTO } from './dto/LogonDTO';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { UserEntity } from './user/entity/user.entity';
+import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from "@nestjs/websockets";
+import { log } from "console";
+import { Server, WebSocket } from "ws";
+import { LogonDTO } from "./dto/LogonDTO";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { UserEntity } from "./user/entity/user.entity";
 
-@WebSocketGateway(8080, { path: '/room', transports: ['websocket'] })
+@WebSocketGateway(8080, { path: "/room", transports: ["websocket"] })
 export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
   constructor(
     @InjectRepository(UserEntity)
-    private userRepositoy: Repository<UserEntity>,
+    private userRepositoy: Repository<UserEntity>
   ) {}
 
   clientMap = new Map<string, WebSocket>();
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleConnection(client: WebSocket, ...args: any[]) {
     log("Client connected to room");
   }
@@ -32,53 +39,58 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('logon')
+  @SubscribeMessage("logon")
   handleLogon(client: WebSocket, data: LogonDTO) {
     const token = "secret token";
-    
+
     log("%s login : %s", data.username, data.password);
 
     const result: Promise<UserEntity> = this.userRepositoy.findOne({
-      where: { username: data.username, password: data.password }
+      where: { username: data.username, password: data.password },
     });
 
-    result.then(user => {
-      if (data.password.match(user.password)) {
-        this.clientMap.set(token, client);
-        client.send(JSON.stringify({ event: 'logon', data: token }));    
-      } else {
-        client.send(JSON.stringify({ event: 'logon', data: null }));
-      }
-    }).catch(e => {client.send(JSON.stringify({ event: 'logon', data: null }));});
+    result
+      .then((user) => {
+        if (data.password.match(user.password)) {
+          this.clientMap.set(token, client);
+          client.send(JSON.stringify({ event: "logon", data: token }));
+        } else {
+          client.send(JSON.stringify({ event: "logon", data: null }));
+        }
+      })
+      .catch((e) => {
+        client.send(JSON.stringify({ event: "logon", data: null }));
+      });
   }
 
-  @SubscribeMessage('events')
+  @SubscribeMessage("events")
   onEvent(client: WebSocket, data: UserEntity) {
     log("test: id: {} / name: {} / pass: {}", data.email, data.username, data.password);
-    [1, 2, 3].forEach(item => {
-      client.send(JSON.stringify({ event: 'events', data: item }));
+    [1, 2, 3].forEach((item) => {
+      client.send(JSON.stringify({ event: "events", data: item }));
     });
   }
 
-  @SubscribeMessage('message')
+  @SubscribeMessage("message")
   onMessage(client: WebSocket, data: number) {
-    client.send(JSON.stringify({ event: 'message', data }));
+    client.send(JSON.stringify({ event: "message", data }));
   }
 
-  @SubscribeMessage('validate')
+  @SubscribeMessage("validate")
   onValidate(client: WebSocket, data: string) {
     if (this.clientMap.has(data)) {
       log("Ready to send OK message");
-      this.clientMap.get(data).send(JSON.stringify({ event: 'validate', data: 'You can come in' }));
+      this.clientMap.get(data).send(JSON.stringify({ event: "validate", data: "You can come in" }));
     } else {
-      client.send(JSON.stringify({ event: 'validate', data: 'You cannot come in' }));
+      client.send(JSON.stringify({ event: "validate", data: "You cannot come in" }));
     }
   }
 
-  @SubscribeMessage('broadcast')
+  @SubscribeMessage("broadcast")
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onBroadcast(client: WebSocket, data: any) {
     log("Client broadcast to room");
-    this.server.clients.forEach(e => {
+    this.server.clients.forEach((e) => {
       if (e.readyState === WebSocket.OPEN) {
         e.send("Room: Hello everybody");
       }
@@ -86,11 +98,12 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 }
 
-@WebSocketGateway(8080, { path: 'lobby', transports: ['websocket'] })
+@WebSocketGateway(8080, { path: "lobby", transports: ["websocket"] })
 export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleConnection(client: WebSocket, ...args: any[]) {
     log("Client connected to lobby:", client);
   }
@@ -99,10 +112,11 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     log("Client disconnected from lobby:", client);
   }
 
-  @SubscribeMessage('broadcast')
+  @SubscribeMessage("broadcast")
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onBroadcast(client: WebSocket, data: any) {
     log("Client broadcast to lobby");
-    this.server.clients.forEach(e => {
+    this.server.clients.forEach((e) => {
       if (e.readyState === WebSocket.OPEN) {
         if (e === client) {
           e.send("Lobby: welcome!");
