@@ -1,3 +1,3 @@
-export type SignUpRTO = {
+export class SignUpRTO {
   email: string;
-};
+}
