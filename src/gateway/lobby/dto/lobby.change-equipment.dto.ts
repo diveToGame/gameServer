@@ -1,11 +1,11 @@
-export type ChangeEquipmentDTO = {
+export class ChangeEquipmentDTO {
   equipment: {
     helmetId: number;
     weaponId: number;
     shoesId: number;
     accessaryId: number;
   };
-};
+}
 
 // 10000 -> 헬멧
 // 20000 -> 무기

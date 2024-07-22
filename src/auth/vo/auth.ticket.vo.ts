@@ -1,3 +1,3 @@
-export type Ticket = {
+export class Ticket {
   value: string;
-};
+}

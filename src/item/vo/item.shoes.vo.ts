@@ -1,6 +1,6 @@
 import { Equipment } from "./item.equipment.vo";
 
-export type Shoes = Equipment & {
+export class Shoes extends Equipment {
   def: number;
   spd: number;
-};
+}

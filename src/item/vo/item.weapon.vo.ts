@@ -1,7 +1,7 @@
 import { Equipment } from "./item.equipment.vo";
 
-export type Weapon = Equipment & {
+export class Weapon extends Equipment {
   atk: number;
   def: number;
   spd: number;
-};
+}

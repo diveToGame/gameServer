@@ -1,4 +1,4 @@
-export type RoomDTO = {
+export class SummarizedRoomVO {
   id: number;
   name: string;
   seated: number;
@@ -6,4 +6,4 @@ export type RoomDTO = {
 
   isPublic: boolean;
   isPvP: boolean;
-};
+}

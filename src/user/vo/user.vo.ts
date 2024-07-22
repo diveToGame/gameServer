@@ -1,5 +1,5 @@
-export type UserVO = {
+export class UserVO {
   email: string;
   username: string;
   password: string;
-};
+}
