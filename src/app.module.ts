@@ -8,6 +8,7 @@ import { IngameModule } from "./gateway/ingame/ingame.module";
 import { UserEntity } from "./user/entity/user.entity";
 import { CharacterModule } from "./character/character.module";
 import { AuthModule } from "./auth/auth.module";
+import { RoomModule } from "./gateway/room/room.module";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuthModule } from "./auth/auth.module";
     IngameModule,
     CharacterModule,
     AuthModule,
+    RoomModule,
   ],
   controllers: [AppController],
   providers: [ConfigService, AppService],
