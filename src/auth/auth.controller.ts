@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Query } from "@nestjs/common";
 import { MessageBody } from "@nestjs/websockets";
 import { AuthService } from "./auth.service";
-import { SignInInboundDTO } from "./dto/inbound/auth.sign-in.dto.inbound";
-import { SignUpInboundDTO } from "./dto/inbound/auth.sign-up.dto.inbound";
+import { SignInDTO } from "./dto/auth.sign-in.dto";
+import { SignUpDTO } from "./dto/auth.sign-up.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -14,12 +14,12 @@ export class AuthController {
   }
 
   @Post("sign-in")
-  signIn(@MessageBody() { email, password }: SignInInboundDTO) {
+  signIn(@MessageBody() { email, password }: SignInDTO) {
     return this.authService.signIn({ email, password });
   }
 
   @Post("sign-up")
-  signUp(@MessageBody() { email, username, password }: SignUpInboundDTO) {
+  signUp(@MessageBody() { email, username, password }: SignUpDTO) {
     return this.authService.signUp({ email, username, password });
   }
 }

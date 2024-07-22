@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { UserService } from "src/user/user.service";
-import { SignInInboundDTO } from "./dto/inbound/auth.sign-in.dto.inbound";
-import { SignInOutboundDTO } from "./dto/outbound/auth.sign-in.dto.outbound";
-import { SignUpInboundDTO } from "./dto/inbound/auth.sign-up.dto.inbound";
-import { signUpOutboundDTO } from "./dto/outbound/auth.sign-up.dto.outbound";
+import { SignInDTO } from "./dto/auth.sign-in.dto";
+import { SignInRTO } from "./rto/auth.sign-in.rto";
+import { SignUpDTO } from "./dto/auth.sign-up.dto";
+import { SignUpRTO } from "./rto/auth.sign-up.rto";
 
 import * as bcrypt from "bcryptjs";
 
@@ -17,7 +17,7 @@ export class AuthService {
     return username;
   }
 
-  async signIn({ email, password }: SignInInboundDTO): Promise<SignInOutboundDTO> {
+  async signIn({ email, password }: SignInDTO): Promise<SignInRTO> {
     const { username, password: hashPassword } = await this.userService.findOne(email);
 
     if (bcrypt.compare(password, hashPassword)) {
@@ -30,7 +30,7 @@ export class AuthService {
     throw new HttpException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
   }
 
-  async signUp(signUpDTO: SignUpInboundDTO): Promise<signUpOutboundDTO> {
+  async signUp(signUpDTO: SignUpDTO): Promise<SignUpRTO> {
     const salt = bcrypt.genSaltSync();
     const hashPassword = await bcrypt.hash(signUpDTO.password, salt);
 

@@ -8,7 +8,7 @@ import {
 import { Server, WebSocket } from "ws";
 import { Logger } from "@nestjs/common";
 import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
-import { TestDTO } from "./dto/outbound/lobby.test.dto.outbound";
+import { TestRTO } from "./rto/lobby.test.rto";
 
 @WebSocketGateway(8080, { path: "lobby", transports: ["websocket"] })
 export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -26,21 +26,12 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage("broadcast")
-  @AsyncApiPub({
-    channel: "lobby/broadcast",
-    message: [
-      {
-        name: "oneOf pub demo",
-        payload: TestDTO,
-      },
-    ],
-  })
   @AsyncApiSub({
     channel: "lobby/broadcast",
     message: [
       {
         name: "oneOf demo",
-        payload: TestDTO,
+        payload: TestRTO,
       },
     ],
   })
@@ -49,7 +40,7 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.clients.forEach((e) => {
       if (e.readyState === WebSocket.OPEN) {
         if (e === client) {
-          const payload: TestDTO = { msg: "Lobby: welcome!" };
+          const payload: TestRTO = { msg: "Lobby: welcome!" };
           e.send(JSON.stringify(payload));
         } else {
           e.send("Lobby: Hello everybody");
