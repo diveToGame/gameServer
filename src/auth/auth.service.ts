@@ -65,7 +65,6 @@ export class AuthService {
   }
 
   compareIf<T, R>(p1: string, p2: string, successResult: Observable<T>, failResult: Observable<R>): Observable<T | R> {
-    // eslint-disable-next-line prettier/prettier
     return from(bcrypt.compare(p1, p2)).pipe(concatMap((x) => iif(() => x, successResult, failResult)));
   }
 
@@ -73,14 +72,11 @@ export class AuthService {
     return (
       this.userService
         .findOne(email)
-        // eslint-disable-next-line prettier/prettier
         .pipe(
-          // eslint-disable-next-line prettier/prettier
           concatMap((x) =>
             iif(
               () => this.accoutMap.has(x.email),
               this.reuseTicket(x),
-              // eslint-disable-next-line prettier/prettier
               this.compareIf(
                 password,
                 x.password,
