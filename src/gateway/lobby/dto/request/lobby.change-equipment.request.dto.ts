@@ -1,4 +1,4 @@
-export class ChangeEquipmentDTO {
+export class ChangeEquipmentRequestDTO {
   equipment: {
     helmetId: number;
     weaponId: number;

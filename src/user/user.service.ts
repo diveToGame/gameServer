@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UserEntity } from "./entity/user.entity";
 import { UserVO } from "./vo/user.vo";
+import { Observable, from, map, catchError, of } from "rxjs";
 
 @Injectable()
 export class UserService {
@@ -10,19 +11,18 @@ export class UserService {
 
   constructor(
     @InjectRepository(UserEntity)
-    private userRepositoy: Repository<UserEntity>
+    private userRepository: Repository<UserEntity>
   ) {}
 
-  async findOne(email: string): Promise<UserVO> {
-    const userEntity = await this.userRepositoy.findOne({
-      where: { email: email },
-    });
-    return { ...userEntity };
+  findOne(email: string): Observable<UserVO> {
+    return from(this.userRepository.findOne({ where: { email: email } })).pipe(
+      map((userEntity) => ({ ...userEntity }))
+    );
   }
 
-  async insert(user: UserVO): Promise<string> {
+  insert(user: UserVO): string {
     try {
-      await this.userRepositoy.insert(user);
+      from(this.userRepository.insert(user)).pipe(catchError((err) => of([err])));
 
       return user.email;
     } catch (error) {

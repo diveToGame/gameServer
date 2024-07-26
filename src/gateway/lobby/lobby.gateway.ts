@@ -8,40 +8,44 @@ import {
 import { Server, WebSocket } from "ws";
 import { Logger } from "@nestjs/common";
 import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
-import { TestRTO } from "./rto/lobby.test.rto";
+import { AuthService } from "src/auth/auth.service";
+import { Ticket } from "src/auth/vo/auth.ticket.vo";
 
 @WebSocketGateway(8080, { path: "lobby", transports: ["websocket"] })
 export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(LobbyGateway.name);
 
   @WebSocketServer()
-  server: Server;
+  private readonly server: Server;
+  private readonly socketMap = new Map<WebSocket, Ticket>();
+
+  constructor(private readonly authService: AuthService) {}
 
   handleConnection(client: WebSocket) {
-    this.logger.log("Client connected to lobby:");
+    this.logger.log("Someone connected to lobby");
   }
 
   handleDisconnect(client: WebSocket) {
+    this.socketMap.get(client);
     this.logger.log("Client disconnected from lobby:");
   }
 
   @SubscribeMessage("broadcast")
-  @AsyncApiSub({
-    channel: "lobby/broadcast",
-    message: [
-      {
-        name: "oneOf demo",
-        payload: TestRTO,
-      },
-    ],
-  })
+  // @AsyncApiSub({
+  //   channel: "lobby/broadcast",
+  //   message: [
+  //     {
+  //       name: "oneOf demo",
+  //       payload: TestRTO,
+  //     },
+  //   ],
+  // })
   onBroadcast(client: WebSocket, data: any) {
     this.logger.log("Client broadcast to lobby");
     this.server.clients.forEach((e) => {
       if (e.readyState === WebSocket.OPEN) {
         if (e === client) {
-          const payload: TestRTO = { msg: "Lobby: welcome!" };
-          e.send(JSON.stringify(payload));
+          e.send(JSON.stringify("Lobby: welcome!"));
         } else {
           e.send("Lobby: Hello everybody");
         }

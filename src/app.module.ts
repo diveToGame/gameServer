@@ -14,6 +14,7 @@ import { RoomModule } from "./gateway/room/room.module";
   imports: [
     ConfigModule.forRoot({
       envFilePath: [".env.development.local"],
+      isGlobal: true,
     }),
     TypeOrmModule.forRoot({
       type: "mysql",
