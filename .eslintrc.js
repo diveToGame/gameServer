@@ -1,3 +1,5 @@
+const customRules = require('./eslint-plugin-custom');
+
 module.exports = {
   parser: "@typescript-eslint/parser",
   parserOptions: {
@@ -5,8 +7,16 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: "module",
   },
-  plugins: ["@typescript-eslint/eslint-plugin"],
-  extends: ["plugin:@typescript-eslint/recommended", "plugin:prettier/recommended", "plugin:rxjs/recommended"],
+  plugins: [
+    "@typescript-eslint/eslint-plugin",
+    'prettier',
+    customRules,
+  ],
+  extends: [
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "plugin:rxjs/recommended"
+  ],
   root: true,
   env: {
     node: true,
@@ -14,6 +24,23 @@ module.exports = {
   },
   ignorePatterns: [".eslintrc.js"],
   rules: {
+    'prettier/prettier': [
+      'error',
+      {
+        "printWidth": 120,
+        "tabWidth": 2,
+        "useTabs": false,
+        "semi": true,
+        "singleQuote": false,
+        "trailingComma": "es5",
+        "bracketSpacing": true,
+        "arrowParens": "always",
+        "requirePragma": false,
+        "insertPragma": false,
+        "proseWrap": "preserve"
+      },
+    ],
+    'custom/ignore-pipe': 'error',
     "@typescript-eslint/interface-name-prefix": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
