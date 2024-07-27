@@ -25,6 +25,7 @@ import { RoomModule } from "./gateway/room/room.module";
       password: process.env.DB_PASS,
       entities: [UserEntity],
       synchronize: true,
+      logging: true,
     }),
     TypeOrmModule.forFeature([UserEntity]),
     LobbyModule,
