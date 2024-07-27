@@ -11,18 +11,9 @@ import {
   Observable,
   from,
   map,
-  filter,
   iif,
   of,
-  EMPTY,
-  OperatorFunction,
-  pipe,
-  operate,
-  createOperatorSubscriber,
-  switchMap,
   throwError,
-  UnaryFunction,
-  mergeMap,
   concatMap,
 } from "rxjs";
 import { TaskSchedulerService } from "src/common/common.task-scheduler.service";
@@ -41,7 +32,10 @@ export class AuthService {
   ) {}
 
   getUsername(email: string): Observable<string> {
-    return from(this.userService.findOne(email)).pipe(map((data) => data.username));
+    return this.userService.findOne(email)
+      .pipe(
+        map((data) => data.username)
+      )
   }
 
   generateTicket(user: UserVO): Observable<SignInResponseDTO> {
@@ -65,13 +59,18 @@ export class AuthService {
   }
 
   compareIf<T, R>(p1: string, p2: string, successResult: Observable<T>, failResult: Observable<R>): Observable<T | R> {
-    return from(bcrypt.compare(p1, p2)).pipe(concatMap((x) => iif(() => x, successResult, failResult)));
+    return from(bcrypt.compare(p1, p2))
+    .pipe(
+      concatMap((x) => 
+        iif(() => 
+          x, 
+          successResult, 
+          failResult))
+    );
   }
 
   signIn({ email, password }: SignInRequestDTO) {
-    return (
-      this.userService
-        .findOne(email)
+    return this.userService.findOne(email)
         .pipe(
           concatMap((x) =>
             iif(
@@ -81,36 +80,33 @@ export class AuthService {
                 password,
                 x.password,
                 this.generateTicket(x),
-                throwError(() => new HttpException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED))
-              )
-            )
-          )
-        )
-    );
+                throwError(() => new HttpException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED)))))
+        );
   }
 
-  async signOut(ticket: Ticket) {
+  signOut(ticket: Ticket) {
     const account = this.ticketMap.get(ticket);
     this.ticketMap.delete(ticket);
     this.accoutMap.delete(account);
   }
 
-  async signUp(signUpDTO: SignUpRequestDTO): Observable<SignUpResponseDTO> {
-    const salt = bcrypt.genSaltSync();
-    const hashPassword = await bcrypt.hash(signUpDTO.password, salt);
-
-    const userVO = { ...signUpDTO };
-    userVO.password = hashPassword;
-    return { email: await this.userService.insert(userVO) };
+  signUp(signUpDTO: SignUpRequestDTO): Observable<SignUpResponseDTO> {
+    return from(bcrypt.hash(signUpDTO.password, bcrypt.genSaltSync()))
+      .pipe(
+        concatMap(hashPassword => {
+          return this.userService.insert({...signUpDTO, password: hashPassword})
+          .pipe(
+            map(email => ({email}))
+          )})
+      )
   }
 
-  async validateTicket(ticket: Ticket): Observable<boolean> {
-    if (this.ticketMap.has(ticket)) return true;
-    return false;
+  validateTicket(ticket: Ticket): Observable<boolean> {
+    return of(this.ticketMap.has(ticket));
   }
 
   // call it when websocket disconnected
-  async reserveToExpireTicket(ticket: Ticket) {
+  reserveToExpireTicket(ticket: Ticket) {
     this.taskSchedulerService.scheduleTask(
       ticket.value,
       () => {
@@ -124,7 +120,7 @@ export class AuthService {
     this.ticketMap.delete(ticket);
   }
 
-  async cancelTicketExpire(ticket: Ticket) {
+  cancelTicketExpire(ticket: Ticket) {
     this.taskSchedulerService.cancelTask(ticket.value);
   }
 }
