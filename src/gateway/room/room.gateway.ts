@@ -31,7 +31,9 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage("validate")
-  onValidate() {}
+  onValidate(client: WebSocket) {
+    authSer
+  }
 
   @SubscribeMessage("broadcast")
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

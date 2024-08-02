@@ -25,8 +25,12 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(client: WebSocket) {
-    this.socketMap.get(client);
-    this.logger.log("Client disconnected from lobby:");
+    const ticket = this.socketMap.get(client);
+
+    this.socketMap.delete(client);
+    this.authService.
+
+    this.logger.log("Client disconnected from lobby - reserve to delete ticket");
   }
 
   @SubscribeMessage("broadcast")
