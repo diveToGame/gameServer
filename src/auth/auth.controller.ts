@@ -5,7 +5,6 @@ import { SignInRequestDTO } from "./dto/request/auth.sign-in.request.dto";
 import { SignUpRequestDTO } from "./dto/request/auth.sign-up.request.dto";
 import { SignOutRequestDTO } from "./dto/request/auth.sign-out.request.dto";
 import { ApiTags, ApiQuery, ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { Observable } from "rxjs";
 import { SignInResponseDTO } from "./dto/response/auth.sign-in.response.dto";
 import { SignUpResponseDTO } from "./dto/response/auth.sign-up.response.dto";
 
@@ -43,7 +42,7 @@ export class AuthController {
     type: SignInResponseDTO,
   })
   @Post("sign-in")
-  signIn(@MessageBody() { email, password }: SignInRequestDTO): Observable<SignInResponseDTO> {
+  async signIn(@MessageBody() { email, password }: SignInRequestDTO): Promise<SignInResponseDTO> {
     return this.authService.signIn({ email, password });
   }
 
@@ -51,8 +50,8 @@ export class AuthController {
     summary: "Sign out",
   })
   @Post("sign-out")
-  signOut(@MessageBody() { ticket }: SignOutRequestDTO) {
-    return this.authService.signOut({ value: ticket });
+  signOut(@MessageBody() { token }: SignOutRequestDTO) {
+    return this.authService.signOut(token);
   }
 
   @ApiOperation({

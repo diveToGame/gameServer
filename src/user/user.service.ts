@@ -1,9 +1,8 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { ConflictException, Injectable, Logger, UnprocessableEntityException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { UserEntity } from "./entity/user.entity";
 import { UserVO } from "./vo/user.vo";
-import { Observable, from, map } from "rxjs";
 
 @Injectable()
 export class UserService {
@@ -14,24 +13,22 @@ export class UserService {
     private userRepository: Repository<UserEntity>
   ) {}
 
-  findOne(email: string): Observable<UserVO> {
-    return from(this.userRepository.findOne({ where: { email: email } })).pipe(
-      map((userEntity) => ({ ...userEntity }))
-    );
+  async findOne(email: string): Promise<UserVO> {
+    return await this.userRepository.findOne({ where: { email: email } });
   }
 
-  insert(user: UserVO): Observable<string> {
-    return from(this.userRepository.insert(user)).pipe(
-      map(() => user.email)
-      // catchError((error) => {
-      //   if (error.code === "ER_DUP_ENTRY") {
-      //     return throwError(() => new ConflictException("User with this email already exists"));
-      //   } else if (error.code === "ER_NO_DEFAULT_FOR_FIELD") {
-      //     return throwError(() => new UnprocessableEntityException("Missing fields"));
-      //   }
-      //   this.logger.error(error.message);
-      //   return throwError(() => error);
-      // })
-    );
+  async insert(user: UserVO): Promise<string> {
+    try {
+      await this.userRepository.insert(user);
+
+      return user.email;
+    } catch (error) {
+      if (error.code === "ER_DUP_ENTRY") {
+        throw new ConflictException("User with this email already exists");
+      } else if (error.code === "ER_NO_DEFAULT_FOR_FIELD") {
+        throw new UnprocessableEntityException("Missing fields");
+      }
+      this.logger.error(error.message);
+    }
   }
 }
