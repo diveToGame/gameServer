@@ -23,5 +23,13 @@ export class SignInResponseDTO {
     example: "some encoded string",
     required: true,
   })
-  ticket: string;
+  accessToken: string;
+
+  @ApiProperty({
+    description: "token to refresh token.",
+    type: String,
+    example: "some encoded string",
+    required: true,
+  })
+  refreshToken: string;
 }

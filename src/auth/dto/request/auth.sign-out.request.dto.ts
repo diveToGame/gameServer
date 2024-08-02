@@ -1,3 +1,3 @@
 export class SignOutRequestDTO {
-  ticket: string;
+  token: string;
 }
