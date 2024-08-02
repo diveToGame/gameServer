@@ -1,13 +1,10 @@
 import { UserEntity } from "../../user/entity/user.entity";
 
 import { DataSource } from "typeorm";
-import { Seeder, SeederFactoryManager } from "typeorm-extension";
+import { Seeder } from "typeorm-extension";
 
 export default class UserSeeder implements Seeder {
-  public async run(
-    dataSource: DataSource,
-    factoryManager: SeederFactoryManager
-  ): Promise<any> {
+  public async run(dataSource: DataSource): Promise<any> {
     const userRepository = dataSource.getRepository(UserEntity);
     console.log("USER REPO: ", userRepository);
     await userRepository.insert([
@@ -15,7 +12,7 @@ export default class UserSeeder implements Seeder {
         email: "inwoo@gmail.com",
         username: "inwoo",
         password: "1234",
-      }
-    ])
+      },
+    ]);
   }
 }

@@ -22,7 +22,7 @@
     "db:create": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs db:create -d ./dataSource.ts",
     "db:drop": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs db:drop -d ./dataSource.ts",
     "seed:run": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs seed:run -d ./dataSource.ts",
-    "seed:create": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs seed:create -n src/database/seed/seed",
+    "seed:create": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs seed:create -n src/database/seeds/seed",
     "schema:drop": "ts-node ./node_modules/typeorm/cli.js schema:drop",
     "schema:sync": "ts-node ./node_modules/typeorm/cli.js schema:sync",
     "db:migrate": "npm run typeorm migration:run -- -d ./dataSource.ts",

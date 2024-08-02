@@ -1,5 +1,3 @@
-const customRules = require('./eslint-plugin-custom');
-
 module.exports = {
   parser: "@typescript-eslint/parser",
   parserOptions: {
@@ -10,7 +8,6 @@ module.exports = {
   plugins: [
     "@typescript-eslint/eslint-plugin",
     'prettier',
-    customRules,
   ],
   extends: [
     "plugin:@typescript-eslint/recommended",
@@ -40,7 +37,6 @@ module.exports = {
         "proseWrap": "preserve"
       },
     ],
-    'custom/ignore-pipe': 'error',
     "@typescript-eslint/interface-name-prefix": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",

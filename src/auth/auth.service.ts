@@ -7,15 +7,7 @@ import { SignUpRequestDTO } from "./dto/request/auth.sign-up.request.dto";
 import { SignInResponseDTO } from "./dto/response/auth.sign-in.response.dto";
 import { SignUpResponseDTO } from "./dto/response/auth.sign-up.response.dto";
 import { Ticket } from "./vo/auth.ticket.vo";
-import {
-  Observable,
-  from,
-  map,
-  iif,
-  of,
-  throwError,
-  concatMap,
-} from "rxjs";
+import { Observable, from, map, iif, of, throwError, concatMap } from "rxjs";
 import { TaskSchedulerService } from "src/common/common.task-scheduler.service";
 import { ConfigService } from "@nestjs/config";
 import { UserVO } from "src/user/vo/user.vo";
@@ -32,10 +24,7 @@ export class AuthService {
   ) {}
 
   getUsername(email: string): Observable<string> {
-    return this.userService.findOne(email)
-      .pipe(
-        map((data) => data.username)
-      )
+    return this.userService.findOne(email).pipe(map((data) => data.username));
   }
 
   generateTicket(user: UserVO): Observable<SignInResponseDTO> {
@@ -59,29 +48,24 @@ export class AuthService {
   }
 
   compareIf<T, R>(p1: string, p2: string, successResult: Observable<T>, failResult: Observable<R>): Observable<T | R> {
-    return from(bcrypt.compare(p1, p2))
-    .pipe(
-      concatMap((x) => 
-        iif(() => 
-          x, 
-          successResult, 
-          failResult))
-    );
+    return from(bcrypt.compare(p1, p2)).pipe(concatMap((x) => iif(() => x, successResult, failResult)));
   }
 
   signIn({ email, password }: SignInRequestDTO) {
-    return this.userService.findOne(email)
-        .pipe(
-          concatMap((x) =>
-            iif(
-              () => this.accoutMap.has(x.email),
-              this.reuseTicket(x),
-              this.compareIf(
-                password,
-                x.password,
-                this.generateTicket(x),
-                throwError(() => new HttpException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED)))))
-        );
+    return this.userService.findOne(email).pipe(
+      concatMap((x) =>
+        iif(
+          () => this.accoutMap.has(x.email),
+          this.reuseTicket(x),
+          this.compareIf(
+            password,
+            x.password,
+            this.generateTicket(x),
+            throwError(() => new HttpException("UNAUTHORIZED", HttpStatus.UNAUTHORIZED))
+          )
+        )
+      )
+    );
   }
 
   signOut(ticket: Ticket) {
@@ -91,14 +75,11 @@ export class AuthService {
   }
 
   signUp(signUpDTO: SignUpRequestDTO): Observable<SignUpResponseDTO> {
-    return from(bcrypt.hash(signUpDTO.password, bcrypt.genSaltSync()))
-      .pipe(
-        concatMap(hashPassword => {
-          return this.userService.insert({...signUpDTO, password: hashPassword})
-          .pipe(
-            map(email => ({email}))
-          )})
-      )
+    return from(bcrypt.hash(signUpDTO.password, bcrypt.genSaltSync())).pipe(
+      concatMap((hashPassword) => {
+        return this.userService.insert({ ...signUpDTO, password: hashPassword }).pipe(map((email) => ({ email })));
+      })
+    );
   }
 
   validateTicket(ticket: Ticket): Observable<boolean> {

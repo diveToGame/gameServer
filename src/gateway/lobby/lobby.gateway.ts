@@ -7,7 +7,6 @@ import {
 } from "@nestjs/websockets";
 import { Server, WebSocket } from "ws";
 import { Logger } from "@nestjs/common";
-import { AsyncApiPub, AsyncApiSub } from "nestjs-asyncapi";
 import { AuthService } from "src/auth/auth.service";
 import { Ticket } from "src/auth/vo/auth.ticket.vo";
 
@@ -21,7 +20,7 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(private readonly authService: AuthService) {}
 
-  handleConnection(client: WebSocket) {
+  handleConnection() {
     this.logger.log("Someone connected to lobby");
   }
 
@@ -40,7 +39,7 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   //     },
   //   ],
   // })
-  onBroadcast(client: WebSocket, data: any) {
+  onBroadcast(client: WebSocket) {
     this.logger.log("Client broadcast to lobby");
     this.server.clients.forEach((e) => {
       if (e.readyState === WebSocket.OPEN) {
