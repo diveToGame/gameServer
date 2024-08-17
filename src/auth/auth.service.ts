@@ -1,5 +1,5 @@
 import * as bcrypt from "bcryptjs";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { SignInRequestDTO } from "./dto/request/auth.sign-in.request.dto";
 import { SignUpRequestDTO } from "./dto/request/auth.sign-up.request.dto";
 import { SignInResponseDTO } from "./dto/response/auth.sign-in.response.dto";
@@ -20,7 +20,10 @@ export class AuthService {
   ) {}
 
   async getUsername(email: string): Promise<string> {
-    return (await this.userService.findOne(email)).username;
+    const username = (await this.userService.findOne(email))?.username;
+
+    if (username === undefined) throw new NotFoundException("email not found");
+    return username;
   }
 
   async signIn({ email, password }: SignInRequestDTO): Promise<SignInResponseDTO> {
@@ -43,11 +46,29 @@ export class AuthService {
     };
   }
 
-  signOut(token: string) {
-    this.accountMap.pop(token);
+  signOut(token: string): string {
+    const res = this.accountMap.pop(token)?.key;
+    if (res === undefined)
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: "token not found",
+        },
+        HttpStatus.NOT_FOUND
+      );
+    return res;
   }
 
-  async signUp(signUpDTO: SignUpRequestDTO) {
+  async signUp(signUpDTO: SignUpRequestDTO): Promise<string> {
+    if (signUpDTO.email === undefined || signUpDTO.username === undefined || signUpDTO.password === undefined) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: "email or password not found",
+        },
+        HttpStatus.NOT_FOUND
+      );
+    }
     return this.userService.insert({
       ...signUpDTO,
       password: await bcrypt.hash(signUpDTO.password, bcrypt.genSaltSync()),
@@ -61,7 +82,7 @@ export class AuthService {
   }
 
   async regenerateTokens(refreshToken: string): Promise<SignInResponseDTO> {
-    const { email, username } = await this.validateTokenHelper(
+    const { email, username }: Payload = await this.validateTokenHelper(
       refreshToken,
       this.configService.get("JWT_REFRESH_SECRET")
     );
