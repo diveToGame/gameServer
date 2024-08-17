@@ -8,7 +8,7 @@ import {
 import { log } from "console";
 import { Server, WebSocket } from "ws";
 
-@WebSocketGateway(8080, { path: "/room", transports: ["websocket"] })
+@WebSocketGateway({ path: "/room", transports: ["websocket"] })
 export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;

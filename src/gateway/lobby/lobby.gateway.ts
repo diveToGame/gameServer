@@ -10,7 +10,7 @@ import { Logger } from "@nestjs/common";
 import { AuthService } from "src/auth/auth.service";
 // import { Ticket } from "src/auth/vo/auth.ticket.vo";
 
-@WebSocketGateway(8080, { path: "lobby", transports: ["websocket"] })
+@WebSocketGateway({ path: "lobby", transports: ["websocket"] })
 export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(LobbyGateway.name);
 
