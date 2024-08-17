@@ -8,7 +8,7 @@ import {
 import { Server, WebSocket } from "ws";
 import { Logger } from "@nestjs/common";
 import { AuthService } from "src/auth/auth.service";
-import { Ticket } from "src/auth/vo/auth.ticket.vo";
+// import { Ticket } from "src/auth/vo/auth.ticket.vo";
 
 @WebSocketGateway(8080, { path: "lobby", transports: ["websocket"] })
 export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -16,7 +16,7 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer()
   private readonly server: Server;
-  private readonly socketMap = new Map<WebSocket, Ticket>();
+  // private readonly socketMap = new Map<WebSocket, Ticket>();
 
   constructor(private readonly authService: AuthService) {}
 
@@ -25,12 +25,10 @@ export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(client: WebSocket) {
-    const ticket = this.socketMap.get(client);
-
-    this.socketMap.delete(client);
-    this.authService.
-
-    this.logger.log("Client disconnected from lobby - reserve to delete ticket");
+    // const ticket = this.socketMap.get(client);
+    // this.socketMap.delete(client);
+    // this.authService.
+    // this.logger.log("Client disconnected from lobby - reserve to delete ticket");
   }
 
   @SubscribeMessage("broadcast")

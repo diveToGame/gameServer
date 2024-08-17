@@ -6,7 +6,7 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 import { log } from "console";
-import { Server } from "ws";
+import { Server, WebSocket } from "ws";
 
 @WebSocketGateway(8080, { path: "/room", transports: ["websocket"] })
 export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -30,10 +30,10 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage("validate")
-  onValidate(client: WebSocket) {
-    authSer
-  }
+  // @SubscribeMessage("validate")
+  // onValidate(client: WebSocket) {
+  //   authSer
+  // }
 
   @SubscribeMessage("broadcast")
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
