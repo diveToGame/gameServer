@@ -5,6 +5,6 @@ import { ConfigService } from "@nestjs/config";
 export class AppService {
   constructor(private readonly configService: ConfigService) {}
   getHello(): string {
-    return this.configService.get("DB_PORT");
+    return "Hello World!";
   }
 }
