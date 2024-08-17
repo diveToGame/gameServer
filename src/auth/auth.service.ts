@@ -1,14 +1,13 @@
 import * as bcrypt from "bcryptjs";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
-import { UserService } from "src/user/user.service";
 import { SignInRequestDTO } from "./dto/request/auth.sign-in.request.dto";
 import { SignUpRequestDTO } from "./dto/request/auth.sign-up.request.dto";
 import { SignInResponseDTO } from "./dto/response/auth.sign-in.response.dto";
 import { ConfigService } from "@nestjs/config";
-import { UserVO } from "src/user/vo/user.vo";
 import { JwtService } from "@nestjs/jwt";
 import { Payload } from "./vo/auth.payload.vo";
-import { IsoMap } from "src/common/IsoMap";
+import { IsoMap } from "./../common/IsoMap";
+import { UserService } from "src/user/user.service";
 
 @Injectable()
 export class AuthService {
@@ -25,19 +24,22 @@ export class AuthService {
   }
 
   async signIn({ email, password }: SignInRequestDTO): Promise<SignInResponseDTO> {
-    const user = await this.userService.findOne(email);
+    const { username, password: encryptedPassword } = await this.userService.findOne(email);
 
     if (this.accountMap.has(email)) {
-      // TODO : invalid 처리(이미 로그인 중임)
-    }
-    if (await bcrypt.compare(password, user?.password)) {
       throw new UnauthorizedException();
     }
+    if ((await bcrypt.compare(password, encryptedPassword)) === false) {
+      throw new UnauthorizedException();
+    }
+    const { access, refresh } = await this.generateTokens({ email, username });
+
+    this.accountMap.set(email, access);
     return {
       email: email,
-      username: user.username,
-      accessToken: await this.generateAccessToken(user),
-      refreshToken: await this.generateRefreshToken(user),
+      username: username,
+      accessToken: access,
+      refreshToken: refresh,
     };
   }
 
@@ -53,37 +55,54 @@ export class AuthService {
   }
 
   async validateToken(token: string): Promise<boolean> {
+    await this.validateTokenHelper(token, this.configService.get("JWT_SECRET"));
+
+    return this.accountMap.has(token);
+  }
+
+  async regenerateTokens(refreshToken: string): Promise<SignInResponseDTO> {
+    const { email, username } = await this.validateTokenHelper(
+      refreshToken,
+      this.configService.get("JWT_REFRESH_SECRET")
+    );
+
+    if (!this.accountMap.has(email)) throw new UnauthorizedException();
+
+    const { access, refresh } = await this.generateTokens({ email, username });
+    this.accountMap.set(email, access);
+
+    return {
+      email,
+      username,
+      accessToken: access,
+      refreshToken: refresh,
+    };
+  }
+
+  private async validateTokenHelper(token: string, secret: string): Promise<Payload> {
     try {
-      // TODO validate 하는 거 마무리 하고, refresh 하는거도 할 것
-      await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get("JWT_SECRET"),
+      const payload: Payload = await this.jwtService.verifyAsync(token, {
+        secret,
       });
-      return this.accountMap.has(token);
+      return payload;
     } catch {
       throw new UnauthorizedException();
     }
   }
 
-  async generateAccessToken(user: UserVO): Promise<string> {
-    const payload: Payload = {
-      email: user.email,
-      username: user.username,
-    };
+  private async generateTokens({ email, username }: { email: string; username: string }) {
+    const access = await this.jwtService.signAsync(
+      { email, username },
+      { secret: this.configService.get("JWT_SECRET"), expiresIn: this.configService.get("JWT_EXPIRE_MINUTES") }
+    );
 
-    const token = await this.jwtService.signAsync(payload);
-    return token;
-  }
-
-  async generateRefreshToken(user: UserVO): Promise<string> {
-    const { email, username }: Payload = {
-      ...user,
-    };
-    return this.jwtService.signAsync(
+    const refresh = await this.jwtService.signAsync(
       { email, username },
       {
         secret: this.configService.get("JWT_REFRESH_SECRET"),
-        expiresIn: this.configService.get("JWT_REFRESH_EXPIRE_TIME"),
+        expiresIn: this.configService.get("JWT_REFRESH_EXPIRE_DAYS"),
       }
     );
+    return { access, refresh };
   }
 }
