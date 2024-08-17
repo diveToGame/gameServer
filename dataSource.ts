@@ -1,8 +1,8 @@
-import { DataSource } from 'typeorm';
-import * as dotenv from 'dotenv'
-import { UserEntity } from './src/user/entity/user.entity';
+import { DataSource } from "typeorm";
+import * as dotenv from "dotenv";
+import { UserEntity } from "./src/user/entity/user.entity";
 
-dotenv.config({ path: './.env.development.local'});
+dotenv.config({ path: "./.env.development.local" });
 
 const dataSource = new DataSource({
   type: "mysql",
@@ -12,9 +12,9 @@ const dataSource = new DataSource({
   username: process.env.DB_USER,
   password: process.env.DB_PASS,
   entities: [UserEntity],
-  migrations: [__dirname + '/src/migrations/*.ts'],
+  migrations: [__dirname + "/src/migrations/*.ts"],
   synchronize: true,
-  logging: true,
+  logging: false,
 });
 
 export default dataSource;
