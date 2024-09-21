@@ -27,6 +27,18 @@ export class IsoMap<K, V> {
   }
 
   set(key: K, value: V) {
+    const oldKey = this.get(value);
+    const oldValue = this.get(key);
+
+    if (key == oldKey && value == oldValue) {
+      return;
+    }
+    if (oldKey) {
+      this._fmap.delete(oldKey as K);
+    }
+    if (oldValue) {
+      this._bmap.delete(oldValue as V);
+    }
     this._fmap.set(key, value);
     this._bmap.set(value, key);
   }
