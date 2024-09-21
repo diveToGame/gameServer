@@ -1,56 +1,124 @@
 import {
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
 } from "@nestjs/websockets";
-import { Server, WebSocket } from "ws";
-import { Logger } from "@nestjs/common";
+import { AddressInfo, Server, WebSocket } from "ws";
+import { Logger, UseGuards } from "@nestjs/common";
 import { AuthService } from "src/auth/auth.service";
-// import { Ticket } from "src/auth/vo/auth.ticket.vo";
+import { AuthGuard } from "src/auth/guard/auth.guard";
+import { RoomVO } from "./vo/lobby.room.vo";
 
-@WebSocketGateway({ path: "lobby", transports: ["websocket"] })
-export class LobbyGateway implements OnGatewayConnection, OnGatewayDisconnect {
+@UseGuards(AuthGuard)
+@WebSocketGateway({ path: "/lobby", transports: ["websocket"] }) // WebSocket 경로를 지정합니다.
+export class LobbyGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer()
+  readonly server: Server;
+
   private readonly logger = new Logger(LobbyGateway.name);
 
-  @WebSocketServer()
-  private readonly server: Server;
-  // private readonly socketMap = new Map<WebSocket, Ticket>();
+  private readonly TIMEOUT_DURATION = 30000;
+
+  private rooms: Map<number, RoomVO> = new Map();
 
   constructor(private readonly authService: AuthService) {}
 
-  handleConnection() {
-    this.logger.log("Someone connected to lobby");
+  afterInit() {
+    console.log("WebSocket server is running on port:");
+  }
+
+  getPort(): number {
+    const address = this.server.address() as AddressInfo;
+
+    return address.port;
+  }
+
+  handleConnection(client: WebSocket) {
+    console.log("Client connected");
+
+    const timeout = setTimeout(() => {
+      console.log("Client timed out due to inactivity");
+      client.close();
+    }, this.TIMEOUT_DURATION);
+
+    client.on("message", () => {
+      clearTimeout(timeout);
+    });
+
+    client.on("close", () => {
+      console.log("Client disconnected");
+      clearTimeout(timeout);
+      // this.leaveAllRooms(client);
+    });
   }
 
   handleDisconnect(client: WebSocket) {
-    // const ticket = this.socketMap.get(client);
-    // this.socketMap.delete(client);
-    // this.authService.
-    // this.logger.log("Client disconnected from lobby - reserve to delete ticket");
+    console.log("Client disconnected");
+    // this.leaveAllRooms(client);
   }
 
-  @SubscribeMessage("broadcast")
-  // @AsyncApiSub({
-  //   channel: "lobby/broadcast",
-  //   message: [
-  //     {
-  //       name: "oneOf demo",
-  //       payload: TestRTO,
-  //     },
-  //   ],
-  // })
-  onBroadcast(client: WebSocket) {
-    this.logger.log("Client broadcast to lobby");
-    this.server.clients.forEach((e) => {
-      if (e.readyState === WebSocket.OPEN) {
-        if (e === client) {
-          e.send(JSON.stringify("Lobby: welcome!"));
-        } else {
-          e.send("Lobby: Hello everybody");
-        }
-      }
-    });
+  @SubscribeMessage("joinLobby")
+  async handleJoinLobby(@MessageBody() data: { accessToken: string }, @ConnectedSocket() client: WebSocket) {
+    client.send(JSON.stringify({ event: "joinedLobby", data: { message: "Welcome to the lobby!" } }));
   }
+
+  // @SubscribeMessage("refreshLobby")
+  // async handleRefreshLobby(@MessageBody() data: { accessToken: string }, @ConnectedSocket() client: WebSocket) {
+
+  // }
+
+  // @SubscribeMessage("createRoom")
+  // async handleCreateRoom(
+  //   @MessageBody() data: { roomName: string; accessToken: string },
+  //   @ConnectedSocket() client: WebSocket
+  // ) {
+  //   const roomName = data.roomName;
+
+  //   this.rooms.set(roomName, new Set([client]));
+  //   client.send(JSON.stringify({ event: "roomCreated", data: { roomName } }));
+  // }
+
+  // @SubscribeMessage("joinRoom")
+  // async handleJoinRoom(
+  //   @MessageBody() data: { roomName: string; accessToken: string },
+  //   @ConnectedSocket() client: WebSocket
+  // ) {
+  //   const roomName = data.roomName;
+  //   if (!this.rooms.has(roomName)) {
+  //     client.send(JSON.stringify({ event: "error", data: { message: "Room does not exist" } }));
+  //     return;
+  //   }
+  //   this.rooms.get(roomName).add(client);
+  //   client.send(JSON.stringify({ event: "joinedRoom", data: { roomName } }));
+  // }
+
+  // @SubscribeMessage("leaveRoom")
+  // async handleLeaveRoom(
+  //   @MessageBody() data: { roomName: string; accessToken: string },
+  //   @ConnectedSocket() client: WebSocket
+  // ) {
+  //   const roomName = data.roomName;
+  //   if (this.rooms.has(roomName)) {
+  //     const room = this.rooms.get(roomName);
+  //     room.delete(client);
+  //     if (room.size === 0) {
+  //       this.rooms.delete(roomName);
+  //     }
+  //   }
+  //   client.send(JSON.stringify({ event: "leftRoom", data: { roomName } }));
+  // }
+
+  // private leaveAllRooms(client: WebSocket) {
+  //   this.rooms.forEach((clients, roomName) => {
+  //     clients.delete(client);
+  //     if (clients.size === 0) {
+  //       this.rooms.delete(roomName);
+  //     }
+  //   });
+  // }
 }
