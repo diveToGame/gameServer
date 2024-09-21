@@ -8,10 +8,15 @@ import { JwtService } from "@nestjs/jwt";
 import { Payload } from "./vo/auth.payload.vo";
 import { IsoMap } from "./../common/IsoMap";
 import { UserService } from "src/user/user.service";
+import { RegenerateTokenResponseDTO } from "./dto/response/auth.regenerate-token.response.dto";
+import { SignUpResponseDTO } from "./dto/response/auth.sign-up.response.dto";
 
 @Injectable()
 export class AuthService {
+  private readonly MINUTES_TO_MILLISECONDS = 60 * 1000;
+
   private accountMap = new IsoMap<string, string>();
+  private pingTimerMap = new Map<string, NodeJS.Timeout>();
 
   constructor(
     private readonly jwtService: JwtService,
@@ -35,9 +40,10 @@ export class AuthService {
     if ((await bcrypt.compare(password, encryptedPassword)) === false) {
       throw new UnauthorizedException();
     }
-    const { access, refresh } = await this.generateTokens({ email, username });
+    const { access, refresh } = this.generateTokens({ email, username });
 
-    this.accountMap.set(email, access);
+    this.updateAccount({ email, accessToken: access });
+
     return {
       email: email,
       username: username,
@@ -59,7 +65,7 @@ export class AuthService {
     return res;
   }
 
-  async signUp(signUpDTO: SignUpRequestDTO): Promise<string> {
+  async signUp(signUpDTO: SignUpRequestDTO): Promise<SignUpResponseDTO> {
     if (signUpDTO.email === undefined || signUpDTO.username === undefined || signUpDTO.password === undefined) {
       throw new HttpException(
         {
@@ -69,40 +75,67 @@ export class AuthService {
         HttpStatus.NOT_FOUND
       );
     }
-    return this.userService.insert({
-      ...signUpDTO,
-      password: await bcrypt.hash(signUpDTO.password, bcrypt.genSaltSync()),
-    });
+    return {
+      email: await this.userService.insert({
+        ...signUpDTO,
+        password: await bcrypt.hash(signUpDTO.password, bcrypt.genSaltSync()),
+      }),
+    };
   }
 
-  async validateToken(token: string): Promise<boolean> {
-    await this.validateTokenHelper(token, this.configService.get("JWT_SECRET"));
+  validateToken(token: string): boolean {
+    this.validateTokenHelper(token, this.configService.get("JWT_SECRET"));
 
     return this.accountMap.has(token);
   }
 
-  async regenerateTokens(refreshToken: string): Promise<SignInResponseDTO> {
-    const { email, username }: Payload = await this.validateTokenHelper(
+  regenerateTokens(refreshToken: string): RegenerateTokenResponseDTO {
+    const { email, username }: Payload = this.validateTokenHelper(
       refreshToken,
       this.configService.get("JWT_REFRESH_SECRET")
     );
 
     if (!this.accountMap.has(email)) throw new UnauthorizedException();
 
-    const { access, refresh } = await this.generateTokens({ email, username });
-    this.accountMap.set(email, access);
+    const { access, refresh } = this.generateTokens({ email, username });
+
+    this.updateAccount({ email, accessToken: access });
 
     return {
-      email,
-      username,
       accessToken: access,
       refreshToken: refresh,
     };
   }
 
-  private async validateTokenHelper(token: string, secret: string): Promise<Payload> {
+  ping(token: string): string {
+    const email = this.accountMap.get(token);
+    this.updateAccount({ email, accessToken: token });
+
+    return token;
+  }
+
+  private updateAccount({ email, accessToken }: { email: string; accessToken: string }) {
+    const deprecatedAccess = this.accountMap.get(email);
+
+    if (deprecatedAccess) {
+      clearTimeout(this.pingTimerMap.get(deprecatedAccess));
+      this.pingTimerMap.delete(deprecatedAccess);
+    }
+
+    const timer = setTimeout(
+      () => {
+        this.accountMap.pop(email);
+        this.pingTimerMap.delete(accessToken);
+      },
+      this.configService.get("JWT_EXPIRE_MINUTES") * this.MINUTES_TO_MILLISECONDS
+    );
+    this.pingTimerMap.set(accessToken, timer);
+    this.accountMap.set(email, accessToken);
+  }
+
+  private validateTokenHelper(token: string, secret: string): Payload {
     try {
-      const payload: Payload = await this.jwtService.verifyAsync(token, {
+      const payload: Payload = this.jwtService.verify(token, {
         secret,
       });
       return payload;
@@ -111,13 +144,13 @@ export class AuthService {
     }
   }
 
-  private async generateTokens({ email, username }: { email: string; username: string }) {
-    const access = await this.jwtService.signAsync(
+  private generateTokens({ email, username }: { email: string; username: string }) {
+    const access = this.jwtService.sign(
       { email, username },
       { secret: this.configService.get("JWT_SECRET"), expiresIn: this.configService.get("JWT_EXPIRE_MINUTES") }
     );
 
-    const refresh = await this.jwtService.signAsync(
+    const refresh = this.jwtService.sign(
       { email, username },
       {
         secret: this.configService.get("JWT_REFRESH_SECRET"),

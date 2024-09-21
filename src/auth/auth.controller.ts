@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query } from "@nestjs/common";
+import { Controller, Get, Post, Query, Req, UseGuards } from "@nestjs/common";
 import { MessageBody } from "@nestjs/websockets";
 import { AuthService } from "./auth.service";
 import { SignInRequestDTO } from "./dto/request/auth.sign-in.request.dto";
@@ -7,6 +7,9 @@ import { SignOutRequestDTO } from "./dto/request/auth.sign-out.request.dto";
 import { ApiTags, ApiQuery, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { SignInResponseDTO } from "./dto/response/auth.sign-in.response.dto";
 import { SignUpResponseDTO } from "./dto/response/auth.sign-up.response.dto";
+import { AuthHeaderGuard } from "./guard/auth.header.guard";
+import { RegenerateTokenRequestDTO } from "./dto/request/auth.regenerate-token.request.dto";
+import { RegenerateTokenResponseDTO } from "./dto/response/auth.regenerate-token.response.dto";
 
 @ApiTags("AUTH")
 @Controller("auth")
@@ -28,6 +31,7 @@ export class AuthController {
     type: String,
     example: "inwoo@gmail.com",
   })
+  @UseGuards(AuthHeaderGuard)
   @Get("username")
   getUsername(@Query("email") email: string) {
     return this.authService.getUsername(email);
@@ -49,9 +53,12 @@ export class AuthController {
   @ApiOperation({
     summary: "Sign out",
   })
-  @Post("sign-out")
-  signOut(@MessageBody() { token }: SignOutRequestDTO) {
-    return this.authService.signOut(token);
+  @UseGuards(AuthHeaderGuard)
+  @Get("sign-out")
+  signOut(@Req() request: Request) {
+    const authHeader = request.headers["authorization"];
+
+    return this.authService.signOut(authHeader.split(" ")[1]);
   }
 
   @ApiOperation({
@@ -63,7 +70,21 @@ export class AuthController {
     type: SignUpResponseDTO,
   })
   @Post("sign-up")
-  signUp(@MessageBody() { email, username, password }: SignUpRequestDTO) {
+  async signUp(@MessageBody() { email, username, password }: SignUpRequestDTO): Promise<SignUpResponseDTO> {
     return this.authService.signUp({ email, username, password });
+  }
+
+  // TODO refresh token 가지고 재발급하는 API 만들 것
+  @Post("regenerate-token")
+  regenerateToken(@MessageBody() { refreshToken }: RegenerateTokenRequestDTO): RegenerateTokenResponseDTO {
+    return this.authService.regenerateTokens(refreshToken);
+  }
+
+  @UseGuards(AuthHeaderGuard)
+  @Get("ping")
+  ping(@Req() request: Request) {
+    const authHeader = request.headers["authorization"];
+
+    return this.authService.ping(authHeader.split(" ")[1]);
   }
 }
